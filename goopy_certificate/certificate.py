@@ -21,6 +21,7 @@ class CertificateReturn:
 class Certificate:
     """ Instructions on how to make a ssl_context
     See: https://talkdotnet.wordpress.com/2019/08/07/generating-a-pem-private-and-public-certificate-with-openssl-on-windows/
+    also see: https://adamtheautomator.com/openssl-windows-10/
     Perform the following in the same directory as this .py module
     1) openssl req -x509 -newkey rsa:4096 -keyout {keyname}.pem -out {publickey_name}.pem -nodes
     2) openssl x509 -outform der -in {publickey_name}.pem -out {publickey_name}.crt
