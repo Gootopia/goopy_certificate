@@ -13,8 +13,10 @@ class CertificateError(Enum):
 
 @dataclass
 class CertificateReturn:
-    ssl_context: ssl.SSLContext
-    error: CertificateError
+    """Information about an attempt to get a certificate"""
+    ssl_context: ssl.SSLContext = None
+    error: CertificateError = CertificateError.Ok
+    error_msg: str = ''
 
 
 # TODO: Add functionality to create SSL certificates
@@ -27,21 +29,39 @@ class Certificate:
     2) openssl x509 -outform der -in {publickey_name}.pem -out {publickey_name}.crt
     """
     @staticmethod
-    def get_certificate(certificate_path='') -> CertificateReturn:
-        """ Obtain a ssl_context for use in SSL operations."""
+    def get_certificate(use_default=True, certificate_path='') -> CertificateReturn:
+        """ Obtain a ssl_context for use in SSL operations.
 
-        result = CertificateReturn(None, CertificateError.Ok)
+        Parameters:
+            - use_default (bool=True): True=>find and use local certifications (ignore any certificate path provided)
+            - certificate_path (str=''): File path to the specific certificate (i.e: .pem).
+
+        Returns:
+            - CertificateError.InvalidPath => Bad path or file does not exist        
+        """
+
+        result = CertificateReturn()
 
         if Path(certificate_path).exists() is not True:
             result.error = CertificateError.Invalid_Path
             return result
 
         try:
-            result.ssl_context = ssl.SSLContext(ssl.CERT_REQUIRED)
-            result.ssl_context.load_verify_locations(certificate_path)
+            new_context = ssl.create_default_context()
+            #new_context.verify_mode=ssl.CERT_REQUIRED            
+            new_context.check_hostname = False
+            new_context.verify_mode=ssl.CERT_NONE
+            new_context.load_default_certs()
+            result.ssl_context = new_context
+
         except ssl.SSLError as e:
             result.ssl_context = None
             result.error = CertificateError.Invalid_Certificate
+            result.error_msg = e.args[0]
+            pass
+        except Exception as e:
+            result.ssl_context = None
+            result.error_msg = e.args[0]
             pass
         finally:
             return result

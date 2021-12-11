@@ -35,9 +35,14 @@ def test_get_certificate_not_valid():
     assert result.ssl_context is None
     assert result.error is CertificateError.Invalid_Certificate
 
+def test_get_default_certs():
+    """Grab default certification from user machine"""
+    result = Certificate.get_certificate(use_default=True)
+    assert result.ssl_context is not None
+    assert result.error is CertificateError.Ok
 
 def test_get_certificate_happy():
-    """ Happy Path test"""
+    """ Happy Path test when passed a good path to a valid cert"""
     local_test_path = Path(__file__).with_name('test_public_key.pem')
     result = Certificate.get_certificate(certificate_path=local_test_path)
 
